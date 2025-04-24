@@ -1,0 +1,38 @@
+description: Set up SSH server on Debian/Ubuntu
+steps:
+  - name: Install SSH server
+    id: install
+    do: apt_pkg_installed
+    with:
+      pkg: openssh-server
+  - name: Configure SSH security
+    id: configure
+    do: file_installed
+    with:
+      path: /etc/ssh/sshd_config.d/99-security.conf
+      source_type: source
+      source: |
+        # Disable root login with password
+        PermitRootLogin prohibit-password
+        # Disable password authentication
+        PasswordAuthentication no
+        # Disable empty passwords
+        PermitEmptyPasswords no
+        # Enable public key authentication
+        PubkeyAuthentication yes
+        # Disable X11 forwarding
+        X11Forwarding no
+        # Disable TCP forwarding
+        AllowTcpForwarding no
+        # Disable agent forwarding
+        AllowAgentForwarding no
+  - name: Enable service
+    id: enable
+    do: systemd_service_enabled
+    with:
+      service: sshd
+  - name: Start service
+    id: start
+    do: systemd_service_started
+    with:
+      service: sshd

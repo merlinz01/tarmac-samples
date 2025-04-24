@@ -1,0 +1,17 @@
+description: Set up NTP on Debian/Ubuntu
+steps:
+  - name: Install NTP
+    id: install
+    do: apt_pkg_installed
+    with:
+      pkg: ntp
+  - name: Enable service
+    id: enable
+    do: systemd_service_enabled
+    with:
+      service: ntp
+  - name: Start service
+    id: start
+    do: systemd_service_started
+    with:
+      service: ntp

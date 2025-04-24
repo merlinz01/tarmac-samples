@@ -1,0 +1,21 @@
+name: Unattended Upgrade
+description: Install and run unattended-upgrade
+outputs:
+  installed:
+    description: Whether unattended-upgrades was installed on this run
+    type: bool
+  changed:
+    description: Whether any packages were upgraded
+    type: bool
+steps:
+  - name: Install unattended-upgrades
+    id: install
+    do: apt_pkg_installed
+    with:
+      pkg: unattended-upgrades
+  - name: Run unattended-upgrade
+    id: run
+    run: unattended-upgrade -v
+  - py: |
+      outputs['installed'] = steps['install']['changed']
+

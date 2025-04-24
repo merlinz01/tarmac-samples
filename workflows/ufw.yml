@@ -1,0 +1,16 @@
+description: Set up UFW on Debian/Ubuntu
+steps:
+  - name: Install UFW
+    id: install
+    do: apt_pkg_installed
+    with:
+      pkg: ufw
+  - name: Allow SSH
+    id: allow_ssh
+    run: ufw allow ssh
+    if: not cmd('ufw status | grep -q "22/tcp" > /dev/null')
+  - name: Enable UFW
+    id: enable
+    run: ufw enable
+    if: |
+      not cmd('ufw status | grep -q "Status: active"')

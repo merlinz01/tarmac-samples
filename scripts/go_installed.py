@@ -1,7 +1,7 @@
 # /// script
-# requires-python = ">=3.10"
+# requires-python = ">=3.12"
 # dependencies = [
-#     "requests",
+#     "requests>=2",
 # ]
 # ///
 
@@ -40,7 +40,7 @@ import tarfile
 import tempfile
 import os
 import shutil
-import requests  # type: ignore
+import requests
 from tarmac.operations import OperationInterface, run
 
 

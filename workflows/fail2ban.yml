@@ -1,0 +1,60 @@
+name: Fail2ban setup
+description: Install and configure fail2ban for Debian/Ubuntu
+outputs:
+  installed:
+    description: Whether fail2ban was installed on this run
+    type: bool
+steps:
+  - name: Install fail2ban
+    id: install
+    do: apt_pkg_installed
+    with:
+      pkg: fail2ban
+  - name: Install python3-systemd
+    id: install_python3_systemd
+    do: apt_pkg_installed
+    with:
+      pkg: python3-systemd
+  - name: Configure fail2ban
+    id: configure
+    do: file_installed
+    with:
+      path: /etc/fail2ban/jail.local
+      source_type: source
+      source: |
+        [DEFAULT]
+        backend = systemd
+        bantime  = 1d
+        maxretry = 5
+        findtime  = 1h
+
+        [sshd]
+        enabled = true
+  - do: chown
+    with:
+      path: /etc/fail2ban/jail.local
+      user: root
+      group: root
+  - do: chmod
+    with:
+      path: /etc/fail2ban/jail.local
+      mode: 0644
+  - name: Restart fail2ban
+    id: restart
+    do: systemd_service_restarted
+    if: changed('configure')
+    with:
+      service: fail2ban
+  - name: Fail2ban enabled
+    id: enabled
+    do: systemd_service_enabled
+    with:
+      service: fail2ban
+  - name: Fail2ban running
+    id: running
+    do: systemd_service_running
+    if: skipped('restart')
+    with:
+      service: fail2ban
+  - py: |
+      outputs['installed'] = changed('install')

@@ -1,3 +1,8 @@
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+
 # /// tarmac
 # inputs:
 #     pkg:
@@ -13,12 +18,10 @@
 #             SOME_INSTALL_VAR: "value"
 # ///
 
-import logging
 import os
-from tarmac.operations import OperationInterface, run
 import subprocess
 
-logger = logging.getLogger(__name__)
+from tarmac.operations import Failure, OperationInterface, run
 
 
 def AptPkgInstalled(op: OperationInterface):
@@ -42,6 +45,7 @@ def AptPkgInstalled(op: OperationInterface):
                 continue
             if status == "installed":
                 op.log(f"{pkg_name} is already installed")
+                op.changed(False)
                 return
     else:
         raise subprocess.CalledProcessError(p.returncode, cmd, p.stdout, p.stderr)
@@ -63,10 +67,13 @@ def AptPkgInstalled(op: OperationInterface):
     env["APT_LISTBUGS_FRONTEND"] = "none"  # don't show bug reports
     env["UCF_FORCE_CONFFOLD"] = "1"  # keep old config files
     env.update(op.inputs["env"] or {})
-    p = subprocess.run(cmd, capture_output=True, text=True, env=env, check=True)
+    op.log(f"Installing {pkg_name}")
+    p = subprocess.run(cmd, capture_output=True, text=True, env=env)
     op.log(p.stdout)
     if "Setting up" in p.stdout:
         op.changed()
+    if p.returncode != 0:
+        raise Failure(f"Failed to install {pkg_name}: {p.stderr}")
 
 
 run(AptPkgInstalled)
